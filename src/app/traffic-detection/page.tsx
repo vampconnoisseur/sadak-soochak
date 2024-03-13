@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import TrafficLight from "../ui/traffic-light";
 import { redirect } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
-export default function Page() {
+function TrafficDetection() {
   const searchParams = useSearchParams();
   const lanes = parseInt(searchParams.get("lanes") ?? "");
 
@@ -96,33 +96,45 @@ export default function Page() {
   }
 
   return (
-    <>
-      <main className="flex flex-col items-center justify-center h-screen my-8">
-        <div className="mb-8">
-          {activeLight.time == -1 ? 0 : activeLight.time}
+    <main className="flex flex-col items-center justify-center h-screen my-8">
+      <div className="mb-8">
+        {activeLight.time == -1 ? 0 : activeLight.time}
+      </div>
+      <progress value={activeLight.time} max={9}></progress>
+      <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-24 p-24">
+        {Array.from({ length: lanes }).map((_, i) => (
+          <TrafficLight
+            key={i + 1}
+            light={activeLight}
+            lightNumber={i + 1}
+            disabled={disabledLights.includes(i + 1)}
+            addImage={addImage}
+            removeImage={removeImage}
+          />
+        ))}
+      </div>
+      <button
+        onClick={getLight}
+        disabled={status === "Submitting..."}
+        className="text-black bg-white p-3 rounded-xl mb-4"
+      >
+        {status.startsWith("Error") ? "Submit" : status}
+      </button>
+      {status.startsWith("Error") && <div>{status}</div>}
+    </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full h-screen flex justify-center items-center">
+          <p className="text-center">Loading....</p>
         </div>
-        <progress value={activeLight.time} max={9}></progress>
-        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-24 p-24">
-          {Array.from({ length: lanes }).map((_, i) => (
-            <TrafficLight
-              key={i + 1}
-              light={activeLight}
-              lightNumber={i + 1}
-              disabled={disabledLights.includes(i + 1)}
-              addImage={addImage}
-              removeImage={removeImage}
-            />
-          ))}
-        </div>
-        <button
-          onClick={getLight}
-          disabled={status === "Submitting..."}
-          className="text-black bg-white p-3 rounded-xl mb-4"
-        >
-          {status.startsWith("Error") ? "Submit" : status}
-        </button>
-        {status.startsWith("Error") && <div>{status}</div>}
-      </main>
-    </>
+      }
+    >
+      <TrafficDetection />
+    </Suspense>
   );
 }
