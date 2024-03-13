@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import TrafficLight from "../ui/traffic-light";
 import { redirect } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 
 function TrafficDetection() {
   const searchParams = useSearchParams();
