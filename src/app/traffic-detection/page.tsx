@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import TrafficLight from "../ui/traffic-light";
 import { redirect } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -96,7 +97,13 @@ export default function Page() {
   }
 
   return (
-    <>
+    <Suspense
+      fallback={
+        <div className="w-full h-screen flex justify-center items-center">
+          <p className="text-center">Loading....</p>
+        </div>
+      }
+    >
       <main className="flex flex-col items-center justify-center h-screen my-8">
         <div className="mb-8">
           {activeLight.time == -1 ? 0 : activeLight.time}
@@ -123,6 +130,6 @@ export default function Page() {
         </button>
         {status.startsWith("Error") && <div>{status}</div>}
       </main>
-    </>
+    </Suspense>
   );
 }
