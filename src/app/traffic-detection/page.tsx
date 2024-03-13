@@ -2,75 +2,94 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import TrafficLight from "../api/ui/traffic-density/traffic-light";
+import TrafficLight from "../ui/traffic-light";
 import { redirect } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function Page() {
+  const searchParams = useSearchParams();
+  const lanes = parseInt(searchParams.get("lanes") ?? "");
+
   const { data: session } = useSession();
 
   const [images, setImages] = useState<string[]>([]);
-  const [light, setLight] = useState({ time: -1, type: 0 });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(false);
-
-  const addImage = (imageUrl: string): void => {
-    setImages((prevImages: string[]) => [...prevImages, imageUrl]);
-  };
-
-  const getLight = async () => {
-    setSubmitting(true);
-    setError(false);
-
-    if (images.length !== 4) {
-      setError(true);
-      setSubmitting(false);
-      return;
-    }
-
-    console.log(images);
-    const response = await fetch("/api/lights", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        light,
-        images,
-      }),
-    });
-
-    if (!response.ok) {
-      setError(true);
-      setSubmitting(false);
-      return;
-    }
-
-    const lightData = await response.json();
-    setLight(lightData);
-
-    setSubmitting(false);
-  };
+  const [activeLight, setActiveLight] = useState({ time: -1, type: 0 });
+  const [disabledLights, setDisabledLights] = useState<number[]>([]);
+  const [status, setStatus] = useState("Submit");
 
   useEffect(() => {
-    console.log("Effect called.");
-    if (light.time !== -1) {
+    if (activeLight.time !== -1) {
       const interval = setInterval(() => {
-        console.log("Interval called.");
-
-        setLight((prevLight) => ({
+        setActiveLight((prevLight) => ({
           ...prevLight,
           time: prevLight.time - 1,
         }));
 
-        if (light.time === 0) {
-          setLight({ time: -1, type: 0 });
+        if (activeLight.time === 0) {
+          setImages([]);
+          setActiveLight({ time: -1, type: 0 });
+          setStatus("Submit");
           alert("Lights are red again, upload new photos.");
         }
       }, 1000);
 
       return () => clearInterval(interval);
     }
-  }, [light]);
+
+    if (disabledLights.length === lanes) {
+      setDisabledLights([]);
+    }
+  }, [disabledLights, activeLight, lanes]);
+
+  const addImage = (imageUrl: string): void => {
+    setImages((prevImages: string[]) => [...prevImages, imageUrl]);
+  };
+
+  const removeImage = (imageUrlToRemove: string) => {
+    setImages((prevImages: string[]) => {
+      const newImages = prevImages.filter(
+        (imageUrl) => imageUrl !== imageUrlToRemove
+      );
+      return newImages;
+    });
+  };
+
+  const getLight = async () => {
+    setStatus("Submitting...");
+
+    if (images.length !== lanes - disabledLights.length) {
+      setStatus(
+        `Error: Please upload exactly ${lanes - disabledLights.length} images.`
+      );
+      return;
+    }
+
+    const response = await fetch("/api/lights", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        activeLight,
+        images,
+      }),
+    });
+
+    if (!response.ok) {
+      setStatus("Error occurred while processing.");
+      return;
+    }
+
+    const lightData = await response.json();
+
+    setStatus("Releasing...");
+
+    setActiveLight(lightData);
+    setDisabledLights((prevDisabledLights) => [
+      ...prevDisabledLights,
+      lightData.type,
+    ]);
+  };
 
   if (!session) {
     return redirect("/");
@@ -79,22 +98,30 @@ export default function Page() {
   return (
     <>
       <main className="flex flex-col items-center justify-center h-screen my-8">
-        <div className="mb-8">{light.time == -1 ? 0 : light.time}</div>
-        <progress value={light.time} max={9}></progress>
+        <div className="mb-8">
+          {activeLight.time == -1 ? 0 : activeLight.time}
+        </div>
+        <progress value={activeLight.time} max={9}></progress>
         <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-24 p-24">
-          <TrafficLight light={light} lightNumber={1} addImage={addImage} />
-          <TrafficLight light={light} lightNumber={2} addImage={addImage} />
-          <TrafficLight light={light} lightNumber={3} addImage={addImage} />
-          <TrafficLight light={light} lightNumber={4} addImage={addImage} />
+          {Array.from({ length: lanes }).map((_, i) => (
+            <TrafficLight
+              key={i + 1}
+              light={activeLight}
+              lightNumber={i + 1}
+              disabled={disabledLights.includes(i + 1)}
+              addImage={addImage}
+              removeImage={removeImage}
+            />
+          ))}
         </div>
         <button
           onClick={getLight}
-          disabled={submitting}
+          disabled={status === "Submitting..."}
           className="text-black bg-white p-3 rounded-xl mb-4"
         >
-          {submitting ? "Submitting..." : "Submit"}
+          {status.startsWith("Error") ? "Submit" : status}
         </button>
-        {error && <div>Error: Please upload exactly 4 images.</div>}
+        {status.startsWith("Error") && <div>{status}</div>}
       </main>
     </>
   );

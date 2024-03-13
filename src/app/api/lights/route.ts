@@ -22,9 +22,9 @@ export const POST = async (req: NextRequest) => {
 
   const response_data: { traffic: string; value: number }[] = [
     { traffic: "HIGH", value: 0.726 },
-    { traffic: "MEDIUM", value: 0.87 },
+    { traffic: "JAM", value: 0.9868 },
+    { traffic: "JAM", value: 0.9868 },
     { traffic: "JAM", value: 0.9999 },
-    { traffic: "MEDIUM", value: 0.9868 },
   ];
 
   const reducedValue = response_data.reduce(

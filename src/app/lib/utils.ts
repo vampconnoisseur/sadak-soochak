@@ -1,8 +1,4 @@
-export const uploadToCloudinary = async (
-  e: React.ChangeEvent<HTMLInputElement>,
-  addImage: (imageUrl: string) => void
-) => {
-  const file: File | undefined = e.target.files?.[0];
+export const uploadToCloudinary = async (file: File | undefined) => {
   if (!file) return;
 
   const formData = new FormData();
@@ -23,8 +19,6 @@ export const uploadToCloudinary = async (
 
     if (response.ok) {
       const data = await response.json();
-      addImage(data.secure_url);
-
       return data.secure_url;
     } else {
       throw new Error("Error uploading image to Cloudinary");

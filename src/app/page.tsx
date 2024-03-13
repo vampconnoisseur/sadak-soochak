@@ -15,7 +15,7 @@ export default function Home() {
   }
 
   if (session) {
-    return redirect("/traffic-detection");
+    return redirect("/traffic-detection?lanes=4");
   }
 
   return (
