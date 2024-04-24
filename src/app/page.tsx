@@ -3,7 +3,7 @@
 import { useSession, signIn } from "next-auth/react";
 import { redirect } from "next/navigation";
 
-export default function Home() {
+export default function PAGE() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -15,7 +15,7 @@ export default function Home() {
   }
 
   if (session) {
-    return redirect("/traffic-detection?lanes=4");
+    return redirect("/grievances");
   }
 
   return (
