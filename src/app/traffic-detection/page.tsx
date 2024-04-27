@@ -70,7 +70,6 @@ function TrafficDetection() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        activeLight,
         images,
       }),
     });
