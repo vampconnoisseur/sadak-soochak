@@ -16,6 +16,7 @@ export default function TrafficDetection() {
   const [activeLight, setActiveLight] = useState({ time: -1, type: 0 });
   const [disabledLights, setDisabledLights] = useState<number[]>([]);
   const [status, setStatus] = useState("Submit");
+  const [laneStatus, setLaneStatus] = useState("");
 
   useEffect(() => {
     if (activeLight.time !== -1) {
@@ -26,6 +27,7 @@ export default function TrafficDetection() {
         }));
 
         if (activeLight.time === 0) {
+          setLaneStatus("");
           setImages([]);
           setActiveLight({ time: -1, type: 0 });
           setStatus("Submit");
@@ -97,6 +99,7 @@ export default function TrafficDetection() {
       }
     }
 
+    setLaneStatus(lightData.laneStatus);
     setActiveLight({ time: lightData.time, type: nextActiveLight });
     setDisabledLights((prevDisabledLights) => [
       ...prevDisabledLights,
@@ -110,10 +113,11 @@ export default function TrafficDetection() {
 
   return (
     <main className="flex flex-col items-center justify-center h-screen my-8">
-      <div className="mb-8">
+      <p className="mb-8 uppercase">
         {activeLight.time == -1 ? 0 : activeLight.time}
-      </div>
+      </p>
       <progress value={activeLight.time} max={9}></progress>
+      <div className="mt-12 mb-4 font-bold text-lg ">{laneStatus}</div>
       <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-24 p-24">
         {Array.from({ length: lanes }).map((_, i) => (
           <TrafficLight

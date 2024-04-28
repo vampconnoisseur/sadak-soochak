@@ -8,11 +8,11 @@ const TRAFFIC_CLASSIFICATIONS: string[] = [
   "Traffic_Jam",
 ];
 const TIME_VALUES: Record<string, number> = {
-  Empty: 4,
-  Low: 3,
-  Medium: 3,
-  High: 4,
-  Traffic_Jam: 5,
+  Empty: 3,
+  Low: 4,
+  Medium: 5,
+  High: 8,
+  Traffic_Jam: 10,
 };
 
 export const POST = async (req: NextRequest) => {
@@ -38,7 +38,6 @@ export const POST = async (req: NextRequest) => {
     }
 
     const response_data = await response.json();
-    console.log(response_data);
 
     // const response_data: { traffic: string; value: number }[] = [
     //   { traffic: "HIGH", value: 0.726 },
@@ -83,12 +82,14 @@ export const POST = async (req: NextRequest) => {
       reducedValue.traffic = "Traffic_Jam";
     }
 
-    console.log("reducedValue", reducedValue.index + 1);
-
     const time = TIME_VALUES[response_data[reducedValue.index].traffic];
 
     return new NextResponse(
-      JSON.stringify({ time, type: reducedValue.index + 1 }),
+      JSON.stringify({
+        time,
+        type: reducedValue.index + 1,
+        laneStatus: response_data[reducedValue.index].traffic,
+      }),
       {
         headers: {
           "Content-Type": "application/json",
