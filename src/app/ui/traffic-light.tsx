@@ -34,6 +34,22 @@ export default function TrafficLight({
     }
   }, [file.imageUrl, light, removeImage, lightNumber]);
 
+  const truncateFileName = (fileName: string, maxLength: number) => {
+    const MAX_FILENAME_LENGTH = maxLength || 25;
+    let truncatedName = fileName;
+    const parts = fileName.split(".");
+    const extension = parts.length > 1 ? parts.pop() || "" : "";
+
+    if (truncatedName.length > MAX_FILENAME_LENGTH) {
+      truncatedName =
+        truncatedName.substring(0, MAX_FILENAME_LENGTH - extension.length - 3) +
+        "..." +
+        extension;
+    }
+
+    return truncatedName;
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;
 
@@ -42,10 +58,11 @@ export default function TrafficLight({
 
     setLoading(true);
     try {
+      const truncatedName = truncateFileName(file.name, 25);
       const imageUrl = await uploadToCloudinary(file);
       if (imageUrl) {
         setLoading(false);
-        setFile({ name: file.name, imageUrl: imageUrl });
+        setFile({ name: truncatedName, imageUrl: imageUrl });
         addImage(imageUrl);
       }
     } catch (error) {
@@ -109,7 +126,7 @@ export default function TrafficLight({
         {file.name && !disabled && (
           <button
             onClick={handleRemoveImage}
-            className="ml-2 px-3.5 w-full bg-red-500 text-white rounded-3xl"
+            className="ml-2 bg-red-500 text-white rounded-3xl h-8 w-8 text-center"
           >
             x
           </button>

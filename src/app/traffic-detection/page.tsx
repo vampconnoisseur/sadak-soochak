@@ -1,10 +1,10 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import TrafficLight from "../ui/traffic-light";
 import { redirect } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import TrafficLight from "../ui/traffic-light";
 
 function TrafficDetection() {
   const searchParams = useSearchParams();
@@ -80,13 +80,27 @@ function TrafficDetection() {
     }
 
     const lightData = await response.json();
-
     setStatus("Releasing...");
 
-    setActiveLight(lightData);
+    let nextActiveLight = lightData.type;
+
+    for (let i = 0; i < lanes; i++) {
+      if (disabledLights.includes(i + 1)) {
+        continue;
+      } else {
+        nextActiveLight--;
+      }
+
+      if (nextActiveLight === 0) {
+        nextActiveLight = i + 1;
+        break;
+      }
+    }
+
+    setActiveLight({ time: lightData.time, type: nextActiveLight });
     setDisabledLights((prevDisabledLights) => [
       ...prevDisabledLights,
-      lightData.type,
+      nextActiveLight,
     ]);
   };
 

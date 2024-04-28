@@ -1,25 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const TRAFFIC_CLASSIFICATIONS: string[] = [
-  "EMPTY",
-  "LOW",
-  "MEDIUM",
-  "HIGH",
-  "JAM",
+  "Empty",
+  "Low",
+  "Medium",
+  "High",
+  "Traffic_Jam",
 ];
 const TIME_VALUES: Record<string, number> = {
-  EMPTY: 0,
-  LOW: 2,
-  MEDIUM: 3,
-  HIGH: 4,
-  JAM: 5,
+  Empty: 4,
+  Low: 3,
+  Medium: 3,
+  High: 4,
+  Traffic_Jam: 5,
 };
 
 export const POST = async (req: NextRequest) => {
   const { images } = await req.json();
 
+  console.log(images);
+
+  console.log("12345678");
+
   try {
-    const response = await fetch("http://127.0.0.1:5000", {
+    const response = await fetch("http://127.0.0.1:5000/api/lights", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,8 +38,16 @@ export const POST = async (req: NextRequest) => {
     }
 
     const response_data = await response.json();
+    console.log(response_data);
 
-    const reducedValue = response_data.reduce(
+    // const response_data: { traffic: string; value: number }[] = [
+    //   { traffic: "HIGH", value: 0.726 },
+    //   { traffic: "JAM", value: 0.9999 },
+    //   { traffic: "JAM", value: 0.9868 },
+    //   { traffic: "JAM", value: 0.9868 },
+    // ];
+
+    let reducedValue = response_data.reduce(
       (
         acc: { priority: number; value: number; index: number } | null,
         item: {
@@ -43,6 +55,8 @@ export const POST = async (req: NextRequest) => {
           value: number;
         }
       ) => {
+        if (item.traffic == "Traffic Jam") item.traffic = "Traffic_Jam";
+
         const priority = TRAFFIC_CLASSIFICATIONS.indexOf(item.traffic);
 
         if (
@@ -62,12 +76,19 @@ export const POST = async (req: NextRequest) => {
       null
     );
 
-    const time = TIME_VALUES[response_data[reducedValue!.index].traffic];
+    if (
+      reducedValue &&
+      response_data[reducedValue.index].traffic === "Traffic Jam"
+    ) {
+      reducedValue.traffic = "Traffic_Jam";
+    }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.log("reducedValue", reducedValue.index + 1);
+
+    const time = TIME_VALUES[response_data[reducedValue.index].traffic];
 
     return new NextResponse(
-      JSON.stringify({ time, type: reducedValue!.index + 1 }),
+      JSON.stringify({ time, type: reducedValue.index + 1 }),
       {
         headers: {
           "Content-Type": "application/json",
