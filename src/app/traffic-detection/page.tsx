@@ -1,12 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import TrafficLight from "../ui/traffic-light";
 
-function TrafficDetection() {
+export default function TrafficDetection() {
   const searchParams = useSearchParams();
   const lanes = parseInt(searchParams.get("lanes") ?? "");
 
@@ -135,19 +135,5 @@ function TrafficDetection() {
       </button>
       {status.startsWith("Error") && <div>{status}</div>}
     </main>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense
-      fallback={
-        <div className="w-full h-screen flex justify-center items-center">
-          <p className="text-center">Loading....</p>
-        </div>
-      }
-    >
-      <TrafficDetection />
-    </Suspense>
   );
 }

@@ -9,7 +9,7 @@ export default function PAGE() {
   if (status === "loading") {
     return (
       <div className="w-full h-screen flex justify-center items-center">
-        <p className="text-center">Loading....</p>
+        <div className="loader"></div>
       </div>
     );
   }

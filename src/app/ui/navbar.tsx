@@ -21,16 +21,23 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center">
-        <Link href="/grievance-form" className="ml-2 mr-8">
+        <Link href="/grievance-form" className="ml-2">
           <button className="">NEW REPORT</button>
         </Link>
-        <button
-          onClick={() => {
-            signOut();
-          }}
-        >
-          {session ? "LOGOUT" : ""}
-        </button>
+        {session ? (
+          <button
+            className="ml-6"
+            onClick={() => {
+              signOut();
+            }}
+          >
+            LOGOUT
+          </button>
+        ) : (
+          <Link href="/">
+            <button className="ml-6">LOGIN</button>
+          </Link>
+        )}
       </div>
     </nav>
   );
